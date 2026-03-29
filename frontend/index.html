@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WOWA Tool Executor</title>
+    <style>
+        body { font-family: monospace; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+        input, button { font-size: 1rem; padding: 0.5rem; }
+        pre { background: #f4f4f4; padding: 1rem; overflow: auto; }
+    </style>
+</head>
+<body>
+<h2>WOWA Tool Executor</h2>
+<input id="input" placeholder="Enter tool input" size="50"/>
+<button onclick="run()">Run</button>
+<pre id="out"></pre>
+
+<script>
+async function run() {
+    const backend = document.getElementById("backend").value;
+    const input = document.getElementById("input").value;
+    const res = await fetch(backend + "/tool", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ tool: "supoclip", input: input, cloud: false })
+    });
+    const data = await res.json();
+    document.getElementById("out").innerText = JSON.stringify(data, null, 2);
+}
+</script>
+<hr>
+<label for="backend">Backend URL (will be updated after Railway deploy):</label>
+<input id="backend" value="https://YOUR-BACKEND-URL" size="50" style="margin-top: 1rem;"/>
+<p style="font-size: 0.8rem;">After Railway deploy, replace the backend URL above.</p>
+</body>
+</html>
