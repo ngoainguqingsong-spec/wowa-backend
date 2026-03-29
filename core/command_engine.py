@@ -1,4 +1,4 @@
-# ========== core/command_engine.py ==========
+# core/command_engine.py
 import json
 import hashlib
 import copy
@@ -88,20 +88,29 @@ class CommandEngine:
     # ---------- STEP 5 (ATOMIC) ----------
     @staticmethod
     def execute(command):
-        # Nếu là lệnh tool (type="req") thì xử lý nội bộ
+        # Nếu là lệnh tool (type="req") thì xử lý nội bộ qua wrapper
         if command.get("type") == "req":
             payload = command["payload"]
             tool = payload.get("tool")
             input_data = payload.get("input")
-            if tool == "supoclip":
-                # Mock deterministic execution (for pipeline validation)
-                return {
-                    "tool": "supoclip",
-                    "input": input_data,
-                    "result": f"processed::{input_data}"
-                }
-            else:
-                raise Exception(f"UNKNOWN_TOOL: {tool}")
+
+            # Lấy thông tin tool đã đăng ký
+            from core.tool_registry import get_tool
+            tool_spec = get_tool(tool)
+            if not tool_spec:
+                raise Exception(f"Tool '{tool}' not registered. Call /tool-register first.")
+
+            cmd_template = tool_spec["command_template"]
+            # Thay thế {input} bằng input_data
+            cmd = cmd_template.format(input=input_data)
+
+            # Thực thi wrapper
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise Exception(f"Wrapper error: {result.stderr}")
+            # Trả về output của wrapper
+            return {"tool": tool, "input": input_data, "result": result.stdout.strip()}
+
         # Nếu là lệnh shell (type="deploy")
         else:
             result = subprocess.run(

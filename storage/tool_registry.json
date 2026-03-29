@@ -1,0 +1,11 @@
+{
+  "supoclip": {
+    "name": "supoclip",
+    "version": "1.0",
+    "schema_version": "v1",
+    "command_template": "python workers/supoclip_wrapper.py {input}",
+    "input_schema": {},
+    "output_schema": {},
+    "sandbox_config": {}
+  }
+}
